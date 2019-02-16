@@ -1,12 +1,10 @@
 package com.example.maria.laboratorio6
 
-import android.app.Notification
-import android.app.Service
+import android.app.*
 import android.content.Intent
 import android.media.MediaPlayer
 import android.os.IBinder
 
-import android.app.PendingIntent
 import android.util.Log
 
 import java.util.*
@@ -16,58 +14,50 @@ import android.os.PowerManager
 import java.nio.file.Files.size
 
 import android.content.ContentUris
+import android.content.Context
 import android.os.Binder
+import android.os.Build
 import android.provider.MediaStore
-import android.view.View
-
-import com.example.maria.laboratorio6.MusicService.MusicBinder
-
-import java.nio.file.Files.size
-import java.util.Collections.shuffle
+import android.support.annotation.RequiresApi
 
 
+
+@Suppress("DEPRECATION")
 class MusicService : Service(), MediaPlayer.OnPreparedListener,MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
-    private var songs: ArrayList<Song> = ArrayList()
+    //variables a utilizar en el service
+    lateinit var songs: ArrayList<Song>
     private var songTitle = ""
+    private var songArtist = ""
     private val NOTIFY_ID = 1
     private var player:MediaPlayer=MediaPlayer()
     private var songPosn:Int = 0
     private val musicBind = MusicBinder()
-    private var shuffle = false
-    private lateinit var rand:Random
 
     override fun onCreate() {
-        //create the service
+        //creador de servicio
         super.onCreate()
-        //initialize position
-        songPosn = 0
-        //random
-        rand = Random()
-        //create player
-        //player = MediaPlayer()
-        //initialize
         initMusicPlayer()
     }
 
     fun initMusicPlayer() {
-        //set player properties
-        player.setWakeMode(getApplicationContext(),
-            PowerManager.PARTIAL_WAKE_LOCK);
-        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        //settear propiedades del player
+        player.setWakeMode(
+            applicationContext,
+            PowerManager.PARTIAL_WAKE_LOCK)
+        player.setAudioStreamType(AudioManager.STREAM_MUSIC)
         //set listeners
-        player.setOnPreparedListener(this);
-        player.setOnCompletionListener(this);
-        player.setOnErrorListener(this);
+        player.setOnPreparedListener(this)
+        player.setOnCompletionListener(this)
+        player.setOnErrorListener(this)
     }
-
+//settea las canciones guardadas en el telefono y un arraylist para mostrarla
     fun setList(theSongs: ArrayList<Song>) {
-        songs = theSongs
+        songs = theSongs!!
     }
 
     inner class MusicBinder : Binder() {
-        fun getservice(): MusicService {
-            return MusicService()
-        }
+        internal val service: MusicService
+            get() = this@MusicService
     }
 
     override fun onUnbind(intent: Intent): Boolean {
@@ -77,12 +67,14 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener,MediaPlayer.OnErr
     }
 
     fun playSong() {
-        //play
+        //reprodice la cancion
         player.reset()
-        //get song
+        //consigue la cancion que desea al usuario
         val playSong = songs[songPosn]
         //get title
         songTitle = playSong.getTitle()
+        //obtiene el artista
+        songArtist=playSong.getArtist()
         //get id
         val currSong = playSong.getID()
         //set uri
@@ -106,10 +98,11 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener,MediaPlayer.OnErr
 
 
 
+    @RequiresApi(Build.VERSION_CODES.O)//ya que usamos un diferente APK y necesita uno mas reciente
     override fun onPrepared(mp: MediaPlayer?) {
         //start playback
         mp!!.start()
-        //notification
+        //notification, instancia de intent que al seleccionarlo manda a la app
         val notIntent = Intent(this, MainActivity::class.java)
         notIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         val pendInt = PendingIntent.getActivity(
@@ -117,24 +110,33 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener,MediaPlayer.OnErr
             notIntent, PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+
+        //notificacion
         val builder = Notification.Builder(this)
-
         builder.setContentIntent(pendInt)
-            .setSmallIcon(R.drawable.play)
-            .setTicker(songTitle)
-            .setOngoing(true)
-            .setContentTitle("Playing")
-            .setContentText(songTitle)
+        builder.setSmallIcon(R.drawable.play)
+        builder.setTicker(songTitle)
+        builder.setOngoing(true)
+        builder.setContentTitle("Is playing "+songTitle+". Artist: "+songTitle)
+        //se agrega un notificaton manager al ejemplo de Canvas
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "sdl_notification_channel"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val notificationChannel = NotificationChannel(channelId, "SmartDeviceLink", importance)
+        notificationChannel.enableLights(false)
+        notificationChannel.enableVibration(false)
+        notificationManager.createNotificationChannel(notificationChannel)
+        builder.setChannelId(channelId)
         val not = builder.build()
-        startForeground(NOTIFY_ID, not)
+        startForeground(NOTIFY_ID,not)
     }
-
+//catch de algun error en la reproduccion
     override fun onError(mp: MediaPlayer?, what: Int, extra: Int): Boolean {
         Log.v("MUSIC PLAYER", "Playback Error")
-        mp?.reset()
+        mp!!.reset()
         return false
     }
-
+//cuando termina la cancion, se reproduce la siguiente
     override fun onCompletion(mp: MediaPlayer?) {
         if(player.getCurrentPosition()>0){
             mp?.reset()
@@ -142,16 +144,14 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener,MediaPlayer.OnErr
         }
     }
 
-    //private val MediaPlayer player
-
     override fun onBind(arg0: Intent): IBinder? {
         return musicBind
     }
-
+//obtiene posicion del player
     fun getPosn(): Int {
         return player.currentPosition
     }
-
+//obtiene duracion de la cancion
     fun getDur(): Int {
         return player.duration
     }
@@ -159,7 +159,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener,MediaPlayer.OnErr
     fun isPng(): Boolean {
         return player.isPlaying
     }
-
+//cuando le dan pause
     fun pausePlayer() {
         player.pause()
     }
@@ -168,35 +168,25 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener,MediaPlayer.OnErr
         player.seekTo(posn)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun go() {
         player.start()
-    }
 
+    }
+//reproduce la cancion anterior
     fun playPrev() {
         songPosn--
         if (songPosn < 0) songPosn = songs.size - 1
         playSong()
     }
-    //skip to next
+    //reproduce la siguiente cancion
     fun playNext() {
-        if (shuffle) {
-            var newSong = songPosn
-            while (newSong == songPosn) {
-                newSong = rand.nextInt(songs.size)
-            }
-            songPosn = newSong
-        } else {
-            songPosn++
-            if (songPosn >= songs.size) songPosn = 0
-        }
+        songPosn++
+        if(songPosn>=songs.size) songPosn=0
         playSong()
     }
 
     override fun onDestroy() {
         stopForeground(true)
-    }
-
-    fun setShuffle() {
-        shuffle = !shuffle
     }
 }

@@ -16,17 +16,17 @@ import android.widget.LinearLayout
 
 
 
-
+//adaptador de canciones que se visualizara en el listview
 class SongAdapter(c: Context, theSongs: ArrayList<Song>) : BaseAdapter() {
 
     private var songs: ArrayList<Song>? = theSongs
     private var songInf: LayoutInflater? = LayoutInflater.from(c)
 
-
+//da la cantidad de canciones para el tamano del listview
     override fun getCount(): Int {
         return songs!!.size
     }
-
+//metodos necesarios de implementar por implementar una interfaz
     override fun getItem(arg0: Int): Any? {
         return null
     }
@@ -35,7 +35,7 @@ class SongAdapter(c: Context, theSongs: ArrayList<Song>) : BaseAdapter() {
         return 0
     }
 
-
+//visualizacion de canciones
     @SuppressLint("ViewHolder")
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View? {
         //map to song layout

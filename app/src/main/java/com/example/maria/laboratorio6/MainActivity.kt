@@ -12,13 +12,17 @@ import java.util.*
 import com.example.maria.laboratorio6.MusicService.MusicBinder
 import android.os.IBinder
 import android.content.Context.BIND_AUTO_CREATE
+import android.os.Build
+import android.support.annotation.RequiresApi
 import android.view.Menu
 import android.view.MenuItem
 
 
+
 //import android.widget.MediaController.MediaPlayerControl
 
-
+//main de programa
+//VERSION FINAL
 class MainActivity : AppCompatActivity(), MediaPlayerControl {
 
 
@@ -56,7 +60,7 @@ class MainActivity : AppCompatActivity(), MediaPlayerControl {
         override fun onServiceConnected(name: ComponentName, service: IBinder) {
             val binder = service as MusicBinder
             //get service
-            musicSrv = binder.getservice()
+            musicSrv = binder.service
             //pass list
             musicSrv!!.setList(songList)
             musicBound = true
@@ -92,30 +96,26 @@ class MainActivity : AppCompatActivity(), MediaPlayerControl {
         controller = MusicController(this)
         //set previous and next button listeners
         controller!!.setPrevNextListeners(
-            View.OnClickListener { playNext() },
-            View.OnClickListener { playPrev() })
+            { playNext() },
+            { playPrev() })
         //set and show
         controller!!.setMediaPlayer(this)
         controller!!.setAnchorView(findViewById(R.id.song_list))
-        controller!!.setEnabled(true)
+        controller!!.isEnabled = true
     }
 
     private fun playNext() {
         musicSrv?.playNext()
-        if (playbackPaused) {
-            setController()
-            playbackPaused = false
-        }
-        controller!!.show(0)
+        controller?.show(0)
     }
 
     private fun playPrev() {
         musicSrv?.playPrev()
-        if (playbackPaused) {
+        /*if (playbackPaused) {
             setController()
             playbackPaused = false
-        }
-        controller?.show(0)
+        }*/
+        controller!!.show(0)
     }
 
     override fun onStart() {
@@ -140,28 +140,10 @@ class MainActivity : AppCompatActivity(), MediaPlayerControl {
 
     }
 
-    override fun onCreateOptionsMenu (menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        //menu item selected
-        when (item.getItemId()) {
-            R.id.action_shuffle -> musicSrv?.setShuffle()
-            R.id.action_end -> {
-                stopService(playIntent)
-                musicSrv = null
-                System.exit(0)
-            }
-        }
-        return super.onOptionsItemSelected(item)
-    }
 
     override fun pause() {
-        playbackPaused=true
-        musicSrv?.pausePlayer()
+        //playbackPaused=true
+        musicSrv!!.pausePlayer()
     }
 
     override fun getBufferPercentage(): Int {
@@ -169,19 +151,20 @@ class MainActivity : AppCompatActivity(), MediaPlayerControl {
     }
 
     override fun seekTo(pos: Int) {
-        musicSrv?.seek(pos);
+        musicSrv?.seek(pos)
     }
 
     override fun getCurrentPosition(): Int {
-        if(musicSrv!=null && musicBound && musicSrv!!.isPng())
-            return musicSrv!!.getPosn()
-        else return 0
+        return if(musicSrv!=null && musicBound && musicSrv!!.isPng())
+            musicSrv!!.getPosn()
+        else 0
     }
 
     override fun canSeekBackward(): Boolean {
         return true
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun start() {
         musicSrv?.go()
     }
@@ -195,9 +178,9 @@ class MainActivity : AppCompatActivity(), MediaPlayerControl {
     }
 
     override fun getDuration(): Int {
-        if(musicSrv!=null && musicBound && musicSrv!!.isPng())
-            return musicSrv!!.getDur()
-        else return 0
+        return if(musicSrv!=null && musicBound && musicSrv!!.isPng())
+            musicSrv!!.getDur()
+        else 0
     }
 
     override fun canSeekForward(): Boolean {
@@ -206,7 +189,7 @@ class MainActivity : AppCompatActivity(), MediaPlayerControl {
 
     override fun isPlaying(): Boolean {
         if(musicSrv!=null && musicBound)
-            return musicSrv!!.isPng();
+            return musicSrv!!.isPng()
         return false
     }
 

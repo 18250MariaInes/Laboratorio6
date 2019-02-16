@@ -5,7 +5,7 @@ import android.content.Context
 import android.widget.MediaController
 
 
-
+//controlador de musica que se instancia en MainActivity
 
 class MusicController(c: Context) : MediaController(c) {
 

@@ -3,10 +3,9 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
               android:orientation="vertical"
-              android:background="#a6ff91"
+              android:background="#000108"
               tools:context=".MainActivity" >
 
-    <!-- song list -->
 
     <ListView
             android:id="@+id/song_list"
