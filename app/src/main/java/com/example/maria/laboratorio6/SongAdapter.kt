@@ -13,9 +13,6 @@ import android.widget.LinearLayout
 
 
 
-
-
-
 //adaptador de canciones que se visualizara en el listview
 class SongAdapter(c: Context, theSongs: ArrayList<Song>) : BaseAdapter() {
 

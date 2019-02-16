@@ -21,7 +21,7 @@ import android.provider.MediaStore
 import android.support.annotation.RequiresApi
 
 
-
+//clase que brinda el servicio del manejo y reproduccion de la musica
 @Suppress("DEPRECATION")
 class MusicService : Service(), MediaPlayer.OnPreparedListener,MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
     //variables a utilizar en el service
