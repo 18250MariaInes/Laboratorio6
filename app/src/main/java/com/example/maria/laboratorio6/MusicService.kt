@@ -122,7 +122,7 @@ class MusicService : Service(), MediaPlayer.OnPreparedListener,MediaPlayer.OnErr
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "sdl_notification_channel"
         val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val notificationChannel = NotificationChannel(channelId, "SmartDeviceLink", importance)
+        val notificationChannel = NotificationChannel(channelId, "Notificacion", importance)
         notificationChannel.enableLights(false)
         notificationChannel.enableVibration(false)
         notificationManager.createNotificationChannel(notificationChannel)
